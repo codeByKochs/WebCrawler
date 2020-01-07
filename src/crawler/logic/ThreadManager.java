@@ -3,8 +3,6 @@ package crawler.logic;
 import javax.swing.*;
 import java.awt.*;
 import java.util.Map;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -20,25 +18,21 @@ public class ThreadManager{
     static final int TIME_LIMIT_UPPER_LIMIT = 1000;
     static final int TIME_LIMIT_LOWER_LIMIT = 1;
 
+    //TODO remove?
     static final int DEFAULT_TIME_LIMIT = 30;
     static final int DEFAULT_CRAWLING_DEPTH_LIMIT = 50;
-
-    static final int TIMER_DELAY = 0;
-    static final int TIMER_PERIOD = 1000;
 
     private ConcurrentLinkedQueue<Url> urlQueue;
     private Timer timer;
     private int numberOfThreads;
     private int maximumCrawlingDepth;
     private int parsingTimeLimit;
-    private int elapsedTime;
 
     private Map<Url, String> outputMap;
     private UrlWorker[] urlWorkers;
     private JLabel messageLabel;
     private boolean isTimeLimited;
     private boolean isDepthLimited;
-    private AtomicBoolean isTimeLimitReached;
 
 
     public ThreadManager() {
@@ -48,13 +42,11 @@ public class ThreadManager{
         //set default values for timeLimit and maximum crawling depth
         this.parsingTimeLimit = DEFAULT_TIME_LIMIT;
         this.maximumCrawlingDepth = DEFAULT_CRAWLING_DEPTH_LIMIT;
-        this.elapsedTime = 0;
 
         this.timer = new Timer();
         this.isTimeLimited = false;
 
         this.isDepthLimited = false;
-        this.isTimeLimitReached = new AtomicBoolean(false);
     }
 
     public void setNumberOfThreads(int numberOfThreads) {
@@ -68,7 +60,7 @@ public class ThreadManager{
 
     public void setTimeLimit(int ParsingTimeLimit) {
         isTimeLimited = true;
-        this.parsingTimeLimit = ParsingTimeLimit;
+        timer.setTimeLimit(ParsingTimeLimit);
     }
 
     public void setStartingUrl(String startingUrl) {
@@ -85,32 +77,31 @@ public class ThreadManager{
         return outputMap.size();
     }
 
-    public int getElapsedTime(){return elapsedTime;}
+    public int getElapsedTime(){return timer.getElapsedTime();}
 
     public void run(){
 
         //check if all inputs are valid
         if (isValidInput()){
+            //reset timer
+            timer.reset();
+
             createUrlWorkers();
 
             messageLabel.setForeground(Color.BLACK);
             messageLabel.setText("parsing...");
 
-            startTimer();
+            timer.start();
 
             for (UrlWorker worker : urlWorkers){
                 worker.start();
             }
 
-            while (!isTimeLimitReached.get()){
+            while (!timer.getIsTimeLimitReached()){
                 runWorkers();
             }
 
             stop();
-            //TODO reset Timer
-            //reset timer
-//            elapsedTime = 0;
-//            isTimeLimitReached.set(false);
 
             messageLabel.setForeground(Color.BLACK);
             messageLabel.setText("finished parsing");
@@ -127,6 +118,7 @@ public class ThreadManager{
     public void stop(){
         for (UrlWorker worker : urlWorkers){
             worker.interrupt();
+            timer.stop();
         }
     }
 
@@ -141,21 +133,6 @@ public class ThreadManager{
         for (UrlWorker worker : urlWorkers){
             worker.run();
         }
-    }
-
-    private void startTimer(){
-        timer.scheduleAtFixedRate(new TimerTask() {
-
-            @Override
-            public void run() {
-            if (elapsedTime > parsingTimeLimit){
-                isTimeLimitReached.set(true);
-            }
-            else{
-                elapsedTime++;
-            }
-            }
-        }, TIMER_DELAY, TIMER_PERIOD);
     }
 
     private boolean isValidInput(){
