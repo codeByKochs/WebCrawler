@@ -109,9 +109,9 @@ public class ThreadManager{
     }
 
     public void stop(){
+        timer.stop();
         for (UrlWorker worker : urlWorkers){
             worker.interrupt();
-            timer.stop();
         }
     }
 

@@ -30,19 +30,22 @@ public class UrlWorker extends Thread {
 
     @Override
     public void run(){
-        // get next Url object
-        if (urlQueue.peek() != null) {
-            currentWorkingUrl = urlQueue.poll();
-        }
 
-        if (currentWorkingUrl != null){
-            //read htmlText from Url
-            readTextFromUrl();
-            currentWorkingUrl.setTitle(findUrlTitle(currentWorkingUrl));
-            addUrlToOutputMap(currentWorkingUrl);
+        if(!isInterrupted()){
+            // get next Url object
+            if (urlQueue.peek() != null) {
+                currentWorkingUrl = urlQueue.poll();
+            }
 
-            // find new links from source code and add them to the queue
-            findLinks();
+            if (currentWorkingUrl != null){
+                //read htmlText from Url
+                readTextFromUrl();
+                currentWorkingUrl.setTitle(findUrlTitle(currentWorkingUrl));
+                addUrlToOutputMap(currentWorkingUrl);
+
+                // find new links from source code and add them to the queue
+                findLinks();
+            }
         }
     }
 
