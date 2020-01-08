@@ -18,7 +18,6 @@ public class ThreadManager{
     static final int TIME_LIMIT_UPPER_LIMIT = 1000;
     static final int TIME_LIMIT_LOWER_LIMIT = 1;
 
-    //TODO remove?
     static final int DEFAULT_TIME_LIMIT = 30;
     static final int DEFAULT_CRAWLING_DEPTH_LIMIT = 50;
 
@@ -106,12 +105,6 @@ public class ThreadManager{
             messageLabel.setForeground(Color.BLACK);
             messageLabel.setText("finished parsing");
 
-            /*
-            //for debugging
-            for (Url url : outputMap.keySet()){
-                System.out.println(url.getUrl()+"  →  "+url.getTitle()+"    →    "+url.getCrawlDepth());
-            }
-             */
         }
     }
 
